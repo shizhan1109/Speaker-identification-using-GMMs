@@ -1,6 +1,6 @@
 #test_gender.py
 import os
-import cPickle
+import pickle
 import numpy as np
 from scipy.io.wavfile import read
 from speakerfeatures import extract_features
@@ -23,7 +23,8 @@ gmm_files = [os.path.join(modelpath,fname) for fname in
               os.listdir(modelpath) if fname.endswith('.gmm')]
 
 #Load the Gaussian gender Models
-models    = [cPickle.load(open(fname,'r')) for fname in gmm_files]
+#models    = [cPickle.load(open(fname,'r')) for fname in gmm_files]
+models = [pickle.load(open(fname, 'rb')) for fname in gmm_files]
 speakers   = [fname.split("\\")[-1].split(".gmm")[0] for fname 
               in gmm_files]
 
@@ -31,7 +32,7 @@ speakers   = [fname.split("\\")[-1].split(".gmm")[0] for fname
 for path in file_paths:   
     
     path = path.strip()   
-    print path
+    print(path)
     sr,audio = read(source + path)
     vector   = extract_features(audio,sr)
     
@@ -43,7 +44,7 @@ for path in file_paths:
         log_likelihood[i] = scores.sum()
     
     winner = np.argmax(log_likelihood)
-    print "\tdetected as - ", speakers[winner]
-    time.sleep(1.0)
+    print("\tdetected as - ", speakers[winner])
+    #time.sleep(1.0)
 
 
