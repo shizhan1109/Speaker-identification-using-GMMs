@@ -16,8 +16,8 @@ https://appliedmachinelearning.wordpress.com/2017/11/14/spoken-speaker-identific
 
 # Installation
 
-You need to install only these (tested with):
-    1. Install Python 3.0
+You need to install only these (tested with):  
+    1. Install Python 3.0  
     2. pip install python_speech_features. (for extracting MFCC features)
 
 Also, Download the data-set from the provided link in the beginning of blog.
