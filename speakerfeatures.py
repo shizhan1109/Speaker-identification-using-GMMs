@@ -11,8 +11,9 @@ Created on Mon Sep 14 19:26:59 2015
 """
 
 import numpy as np
+import pywt
 from sklearn import preprocessing
-import python_speech_features as mfcc
+from python_speech_features import mfcc
 
 def calculate_delta(array):
     """Calculate and returns the delta of given feature vector matrix"""
@@ -40,13 +41,41 @@ def calculate_delta(array):
 def extract_features(audio,rate):
     """extract 20 dim mfcc features from an audio, performs CMS and combines 
     delta to make it 40 dim feature vector"""    
+
+    #signal ,samplerate ,winlen ,winstep ,numcep 
+    mfcc_feat = mfcc(audio,rate,0.025,0.01,60)
+    U, S, VT = np.linalg.svd(mfcc_feat)
+    num_components = 20
+    svd=np.dot(U[:, :num_components], np.dot(np.diag(S[:num_components]), VT[:num_components, :]))
+    return svd
+
+def extract_features_wpt(audio,rate):
+    decomposition_level = 6
+    wavelet='db2'
+    wp = pywt.WaveletPacket(data=audio, wavelet=wavelet, mode='symmetric', maxlevel=decomposition_level)
     
-    mfcc_feat = mfcc.mfcc(audio,rate, 0.025, 0.01,20,appendEnergy = True)
-    
-    mfcc_feat = preprocessing.scale(mfcc_feat)
-    delta = calculate_delta(mfcc_feat)
-    combined = np.hstack((mfcc_feat,delta)) 
-    return combined
+    # Create an empty matrix to store coefficients
+    coeff_matrix = []
+
+    # Iterate through nodes at the specified level
+    for i, node in enumerate(wp.get_level(decomposition_level, 'freq')):
+        if i==0:
+            coeff_matrix = node.data[:100]
+        # print(len(node.data))
+        coeff_matrix=np.vstack((coeff_matrix, node.data[:100]))
+
+    # SVD
+    U, S, VT = np.linalg.svd(coeff_matrix)
+
+    # Define the desired rank for compression
+    rank = 32  # You can adjust this value
+
+    # Reconstruct the compressed matrix
+    compressed_matrix = np.dot(U[:, :rank], np.dot(np.diag(S[:rank]), VT[:rank, :]))
+
+    return coeff_matrix
+
+
 #    
 if __name__ == "__main__":
      print("In main, Call extract_features(audio,signal_rate) as parameters")
